@@ -12,7 +12,7 @@ Enable the following APIs:
 
 Create a new Google project (this is not Terra's auto-generated project). Use the same billing account on the new Google project. Go to [Service accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) and create a new service account and grant it an owner level permission on the project. Make a new key JSON and store it securely on your computer.
 
-# How to register a service account to Terra
+# Register your service account to Terra
 
 Install Terra's FireCloud tools.
 ```bash
@@ -26,11 +26,20 @@ Register your service account to Terra. You may use the key file created in the 
 $ ./run.sh scripts/register_service_account/register_service_account.py -j JSON_KEY_FILE -e "YOUR_SERVICE_ACCOUNT_EMAIL"
 ```
 
+# Create a Slack app
+
+https://api.slack.com/authentication/basics
+Create a new Slack app and add `chat:write` permission to both OAuth Scopes. Install the app to Slack Workspace.
+
+# Time zone
+
+Make sure to use the same time zone (UTC is recommended here) on both platforms: Terra and Google Cloud (especially for the time zone settings of Cloud Scheduler).
+
 # How to use the alert script
 
 Navigate to Google [Cloud Function](https://console.cloud.google.com/functions/add) and create a new function with `1st gen` environment and trigger type `Cloud Pub/Sub`. Create a new `Pub/Sub topic`. Define the following environment variables:
 
-Choose the service account created in the previous step. Set compute resources for the function.
+**CHOOSE THE SERVICEC ACCOUNT CREATED IN THE PREVIOUS STEP.** Set compute resources for the function.
 
 Add the following environment variables (**IMPORTANT**):
 
@@ -42,31 +51,20 @@ Add the following environment variables (**IMPORTANT**):
 - `MONITOR_INTERVAL_HOUR`: Monitor all workflows submitted past this time interval. It is usually set much longer (e.g. 3 days) than the time interval of the cron job (e.g. 3 hours) running this alert script. `ALERT_LOG_TABLE_ID` will be used to prevent sending duplicate alerts. It is necessary to monitor workflow for a long period of time since cost keeps increaseing for a long running workflow and the alert script will send alerts even for the same workfl if cost changes.
 - `SLACK_BOT_TOKEN`: Slack App's OAuth token string.
 
-Click on Next to navigate to the code editing section. Choose Pyton 3.9 as the language and add the alert script (`send_alert.py`). Enter `main` as the entry point and then deploy.
+Click on Next to navigate to the code editing section. Choose Pyton 3.9 as the language and copy the contents of the alert script (`terra_billing_alert`) and paste it to `main.py`. Do it similarly for `requirements.txt`. Enter `main` as the entry point and then deploy.
 
 Create a cron job to run the alert script. Navigate to [Cloud Scheduler](https://console.cloud.google.com/cloudscheduler) and add a new cron job. Specify a frequency (same format as Linux `crontab`). Make sure that the time interval is much longer than the environment variable defined as `MONITOR_WORKFLOW_SINCE_PAST_HOUR` in the previous step.
 
 Set retry as 1 and test the cron job.
 
-
-# Time zone
-
-Make sure to use the same time zone (UTC is recommended here) on both platforms: Terra and Google Cloud (especially for the time zone settings of Cloud Scheduler).
-
-
-# How to create a Slack app
-
-https://api.slack.com/authentication/basics
-Create a new Slack app and add `chat:write` permission to both OAuth Scopes. Install the app to Workspace.
-
 # How to test it on Google Cloud Shell
 
-Define the above environment variables (e.g. `export WORKSPACE_NAMESPACE="IGVF-DACC"`). Make a copy of your service account's key JSON file and define it as `GOOGLE_APPLICATION_CREDENTIALS`.
+Define the above environment variables (e.g. `export WORKSPACE_NAMESPACE="IGVF-DACC"`). Make a copy of your service account's key JSON file on your home on Cloud Shell and define it as `GOOGLE_APPLICATION_CREDENTIALS`.
 ```bash
 $ export GOOGLE_APPLICATION_CREDENTIALS="PATH_FOR_KEY_JSON"
 ````
 
-Make sure that you already registered your service account to FireCloud. Run it.
+Make sure that you've already registered your service account to FireCloud. Run it.
 ```bash
 $ python3 terra_billing_alert.py
 ````
