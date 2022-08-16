@@ -28,14 +28,10 @@ $ ./run.sh scripts/register_service_account/register_service_account.py -j JSON_
 
 # Create a Slack app
 
-https://api.slack.com/authentication/basics
-Create a new Slack app and add `chat:write` permission to both OAuth Scopes. Install the app to Slack Workspace.
+[Create a new Slack app](https://api.slack.com/authentication/basics) and add `chat:write` permission to both OAuth Scopes. Install the app to your Slack Workspace.
 
-# Time zone
 
-Make sure to use the same time zone (UTC is recommended here) on both platforms: Terra and Google Cloud (especially for the time zone settings of Cloud Scheduler).
-
-# How to use the alert script
+# Add the alert script to Cloud Function
 
 Navigate to Google [Cloud Function](https://console.cloud.google.com/functions/add) and create a new function with `1st gen` environment and trigger type `Cloud Pub/Sub`. Create a new `Pub/Sub topic`. Define the following environment variables:
 
@@ -57,7 +53,7 @@ Create a cron job to run the alert script. Navigate to [Cloud Scheduler](https:/
 
 Set retry as 1 and test the cron job.
 
-# How to test it on Google Cloud Shell
+# (Optional for debugging) How to test it on Google Cloud Shell
 
 Define the above environment variables (e.g. `export WORKSPACE_NAMESPACE="IGVF-DACC"`). Make a copy of your service account's key JSON file on your home on Cloud Shell and define it as `GOOGLE_APPLICATION_CREDENTIALS`.
 ```bash
