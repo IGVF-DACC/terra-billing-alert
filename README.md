@@ -1,17 +1,12 @@
 # Introduction
 
-Use this python script in Google Cloud Function to send billing alerts to Terra billing alerts. This script will send an alert if any workflow is charged over a specified amount of cost (dollars per workflow).
-
+Use this python script in Google Cloud Function to monitor Terra/Anvil WDL workflow's running cost and send billing alerts (Slack message).
 
 # Enable Google APIs
 
 Enable the following APIs:
 - Cloud Functions API
 - App Engine API
-- SendGrid Email API (3rd party app to send emails)
-  - Select Free plan and then register it. Wait for 10 minutes.
-  - Click on MANAGE ON PROVIDER to be redirected to SendGrid homepage.
-  - Click on Settings -> API Keys and create a new key.
 
 # Create a new service account on Google
 
@@ -28,7 +23,7 @@ $ ./install.sh
 
 Register your service account to Terra. You may use the key file created in the previous step.
 ```bash
-$ ./run.sh scripts/register_service_account/register_service_account.py -j JSNO_KEY_FILE -e "YOUR_SERVICE_ACCOUNT_EMAIL"
+$ ./run.sh scripts/register_service_account/register_service_account.py -j JSON_KEY_FILE -e "YOUR_SERVICE_ACCOUNT_EMAIL"
 ```
 
 # How to use the alert script
@@ -41,12 +36,11 @@ Add the following environment variables (**IMPORTANT**):
 
 - `WORKSPACE_NAMESPACE`: Billing account name on Terra.
 - `WORKSPACE` (Optional): If defined, then the alert script will fetch information of workflows submitted to this specific workspace only. Otherwise, the alert script will get information of all workflows associated with the billing account.
-- `SENDGRID_API_KEY`: [SendGrid](https://console.cloud.google.com/marketplace/product/sendgrid-app/sendgrid-email) API key to send alert emails. 
-- `SENDER_EMAIL`: Sender's email.
-- `RECIPIENT_EMAILS`: Comma-separated list of emails for alert recipients.
+- `SLACK_CHANNEL`: Slack channel to send alert.
 - `COST_LIMIT_PER_WORKFLOW`: Cost limit per workflow in dollars. The alert script will send an alert if any workflow is charged over this limit.
 - `ALERT_LOG_TABLE_ID`: Format=`GOOGLE_PROJECT_ID.DATASET_ID.TABLE_ID`. Alert log will be stored in this table to prevent sending duplicate alerts. This will automatically create a table if it does not exist.
 - `MONITOR_INTERVAL_HOUR`: Monitor all workflows submitted past this time interval. It is usually set much longer (e.g. 3 days) than the time interval of the cron job (e.g. 3 hours) running this alert script. `ALERT_LOG_TABLE_ID` will be used to prevent sending duplicate alerts. It is necessary to monitor workflow for a long period of time since cost keeps increaseing for a long running workflow and the alert script will send alerts even for the same workfl if cost changes.
+- `SLACK_BOT_TOKEN`: Slack App's OAuth token string.
 
 Click on Next to navigate to the code editing section. Choose Pyton 3.9 as the language and add the alert script (`send_alert.py`). Enter `main` as the entry point and then deploy.
 
@@ -60,10 +54,19 @@ Set retry as 1 and test the cron job.
 Make sure to use the same time zone (UTC is recommended here) on both platforms: Terra and Google Cloud (especially for the time zone settings of Cloud Scheduler).
 
 
-# How to test it on Terra's Jupyter Notebook
+# How to create a Slack app
 
-Go to BigQuery on Google Console and choose the dataset and click on "Permissions".
+https://api.slack.com/authentication/basics
+Create a new Slack app and add `chat:write` permission to both OAuth Scopes. Install the app to Workspace.
 
-Grant `bigquery-prod@broad-dsde-prod.iam.gserviceaccount.com` the following permissions:
-- BigQuery Editor
-- BigQuery User
+# How to test it on Google Cloud Shell
+
+Define the above environment variables (e.g. `export WORKSPACE_NAMESPACE="IGVF-DACC"`). Make a copy of your service account's key JSON file and define it as `GOOGLE_APPLICATION_CREDENTIALS`.
+```bash
+$ export GOOGLE_APPLICATION_CREDENTIALS="PATH_FOR_KEY_JSON"
+````
+
+Make sure that you already registered your service account to FireCloud. Run it.
+```bash
+$ python3 terra_billing_alert.py
+````
