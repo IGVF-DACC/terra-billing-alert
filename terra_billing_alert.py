@@ -1,20 +1,15 @@
-'''Terra billing alert script.
-Use Python 3.9 on Google Cloud Function.
+'''Terra billing alert:
+Sends an alert to a slack channel if any high-cost workflow is found.
 '''
 import firecloud.api as fapi
 import os
 import pandas as pd
 import pandas_gbq
+import textwrap
 from datetime import datetime, timedelta, timezone
 from collections import namedtuple
-
-# Set it False to test it on Terra's jupyter notebook
-# (SendGrid is not available on it)
-ON_GOOGLE_CLOUD_FUNCTION = False
-
-if ON_GOOGLE_CLOUD_FUNCTION:
-    from sendgrid import SendGridAPIClient
-    from sendgrid.helpers.mail import Mail, Personalization, To
+from slack import WebClient
+from slack.errors import SlackApiError
 
 
 Workflow = namedtuple(
@@ -25,28 +20,14 @@ Workflow = namedtuple(
 )
 
 
-# Dry run does not update alert log table nor send alerts
-DRY_RUN = False
-
-
-def send_email(sg_client, sender_email, recipient_emails, subject, html_contents):
-    if ON_GOOGLE_CLOUD_FUNCTION:
-        mail = Mail(
-            from_email=sender_email, 
-            subject=subject,
-            html_content=html_content,
+def send_slack_message(slack_client, channel, message):
+    try:
+        slack_client.chat_postMessage(
+            channel=channel,
+            text=message,
         )
-        personalization = Personalization()
-        for email in recipient_emails:
-            personalization.add_to(To(email))
-        mail.add_personalization(personalization)
-        r = sg_client.send(mail)
-        if r.status_code == 200:
-            print('Sent email successfully.')
-        else:
-            print('Failed to send email.')
-    else:
-        print('SendGrid is not available.')
+    except SlackApiError as e:
+        print(f'Failed to send slack message due to error {e.response["error"]}')
 
 
 def get_utc_datetime_from_dict(d, key):
@@ -105,7 +86,6 @@ def get_all_workflows(namespace, workspace):
 
                     for workflow in r2.json()['workflows']:
                         cost = workflow.get('cost') or 0.0
-                        status = workflow['status']
                         workflow_id = workflow['workflowId']
                         wf_metadata = get_workflow_metadata(
                             namespace, workspace, submission_id, workflow_id
@@ -133,9 +113,11 @@ def get_alert_log_table(alert_log_table_id, monitor_interval_hour):
     project_id, dataset_id, table_id = alert_log_table_id.split('.')
     timestamp = datetime.now(timezone.utc) - timedelta(hours=monitor_interval_hour)
 
-    try:    
+    try:
         sql = f"SELECT * FROM {dataset_id}.{table_id} WHERE submit_time>='{timestamp}'"
         df = pd.read_gbq(sql, project_id=project_id)
+
+        print(f'get_alert_log_table: filtering out workflows submitted < {timestamp}')
 
         # timestamp is still in pandas Timestamp() format
         return df.itertuples(name='Workflow', index=False)
@@ -143,51 +125,60 @@ def get_alert_log_table(alert_log_table_id, monitor_interval_hour):
     except pandas_gbq.exceptions.GenericGBQException as err:
         if 'Reason: 404' not in str(err):
             raise err
-    
+
     return []
 
 
 def update_alert_log_table(workflows, alert_log_table_id):
     if not workflows:
+        print('update_alert_log_table: no workflow found to update alert log table.')
         return
     project_id, dataset_id, table_id = alert_log_table_id.split('.')
 
     df = pd.DataFrame(data=workflows)
-
-    if not DRY_RUN:
-        df.to_gbq(table_id, project_id=project_id, if_exists='replace')
+    df.to_gbq(f'{dataset_id}.{table_id}', project_id=project_id, if_exists='replace')
 
 
-def send_alert(workflows, sg_client, sender_email, recipient_emails):
+def send_alert(workflows, slack_client, slack_channel):
     if not workflows:
+        print('send_alert: no workflow found to send alert.')
         return
 
     max_cost = max(workflows, key=lambda k: k.cost).cost
     df = pd.DataFrame(data=workflows)
 
-    subject = f'Terra billing alert: max cost {max_cost}'
-    html_contents = df.to_html()
+    message = textwrap.dedent(
+        '''Terra billing alert (max_cost={max_cost}, reported at {utc_time}):```
+        {table}```
+        '''.format(
+            max_cost=max_cost,
+            utc_time=datetime.now(timezone.utc),
+            table=df.to_csv(sep='\t', index=False),
+        )
+    )
+    print(f'send_alert: {message}')
 
-    print(f'send_alert.subject: {subject}')
-    print(f'send_alert.workflows: {workflows}')    
-
-    if not DRY_RUN:
-        send_email(sg_client, sender_email, recipient_emails, subject, html_contents)
+    send_slack_message(slack_client, slack_channel, message)
 
 
 def check_workflow(
     workflow, alert_log_table, cost_limit_per_workflow, monitor_interval_hour
 ):
     if workflow.cost >= cost_limit_per_workflow:
+
         # check if submission time is in monitoring window
         hours = (datetime.now(timezone.utc) - workflow.submit_time).total_seconds()/3600
         if hours < monitor_interval_hour:
+
             # check if alert is duplicate
             for workflow_on_table in alert_log_table:
+
                 if workflow.workflow_id == workflow_on_table.workflow_id \
-                    and workflow.cost == workflow_on_table.cost:
+                   and workflow.cost == workflow_on_table.cost:
                     return False
+
             return True
+
     return False
 
 
@@ -200,23 +191,13 @@ def main(event, context):
     # read environment variables
     namespace = os.environ['WORKSPACE_NAMESPACE']
     workspace = os.environ.get('WORKSPACE')
-    sendgrid_api_key = os.environ['SENDGRID_API_KEY']
-    sender_email = os.environ['SENDER_EMAIL']
-    recipient_emails = os.environ['RECIPIENT_EMAILS'].split(',')
-    cost_limit_per_workflow = os.environ['COST_LIMIT_PER_WORKFLOW']
+    slack_channel = os.environ['SLACK_CHANNEL']
+    cost_limit_per_workflow = float(os.environ['COST_LIMIT_PER_WORKFLOW'])
     alert_log_table_id = os.environ['ALERT_LOG_TABLE_ID']
-    monitor_interval_hour = os.environ['MONITOR_INTERVAL_HOUR']
-    sg_client = SendGridAPIClient(sendgrid_api_key)
+    monitor_interval_hour = float(os.environ['MONITOR_INTERVAL_HOUR'])
+    slack_bot_token = os.environ['SLACK_BOT_TOKEN']
 
-    # namespace = 'DACC_ANVIL'
-    # workspace = None # (optional) list of workspace names
-    # sendgrid_api_key = None
-    # sender_email = 'leepc12@stanford.edu'
-    # recipient_emails = ['leepc12@gmail.com']
-    # alert_log_table_id = 'dacc-anvil-billing-monitoring.dacc_anvil_billing_monitoring.alert_log'    
-    # cost_limit_per_workflow = 0.01
-    # monitor_interval_hour = 3000000
-    # sg_client = None
+    slack_client = WebClient(slack_bot_token)
 
     all_workflows = get_all_workflows(namespace, workspace)
     alert_log_table = get_alert_log_table(alert_log_table_id, monitor_interval_hour)
@@ -228,11 +209,11 @@ def main(event, context):
         ):
             workflows.append(workflow)
 
-    send_alert(workflows, sg_client, sender_email, recipient_emails)
+    send_alert(workflows, slack_client, slack_channel)
     update_alert_log_table(workflows, alert_log_table_id)
 
     return 'Success'
 
 
-if not ON_GOOGLE_CLOUD_FUNCTION:
+if __name__ == '__main__':
     main(None, None)
