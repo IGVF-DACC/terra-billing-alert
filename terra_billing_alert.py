@@ -5,7 +5,6 @@ import firecloud.api as fapi
 import os
 import pandas as pd
 import pandas_gbq
-import textwrap
 from datetime import datetime, timedelta, timezone
 from collections import namedtuple
 from slack import WebClient
@@ -15,7 +14,7 @@ from slack.errors import SlackApiError
 Workflow = namedtuple(
     'Workflow', [
         'namespace', 'workspace', 'submission_id', 'workflow_id', 'submission_name',
-        'submitter', 'cost', 'submit_time', 'start_time', 'end_time'
+        'submitter', 'cost', 'submit_time', 'start_time', 'end_time', 'status'
     ]
 )
 
@@ -87,6 +86,7 @@ def get_all_workflows(namespace, workspace):
                     for workflow in r2.json()['workflows']:
                         cost = workflow.get('cost') or 0.0
                         workflow_id = workflow['workflowId']
+                        status = workflow['status']
                         wf_metadata = get_workflow_metadata(
                             namespace, workspace, submission_id, workflow_id
                         )
@@ -96,7 +96,7 @@ def get_all_workflows(namespace, workspace):
                         workflows.append(
                             Workflow(
                                 namespace, workspace, submission_id, workflow_id, submission_name,
-                                submitter, cost, submit_time, start_time, end_time,
+                                submitter, cost, submit_time, start_time, end_time, status,
                             )
                         )
                 else:
@@ -147,10 +147,9 @@ def send_alert(workflows, slack_client, slack_channel):
     max_cost = max(workflows, key=lambda k: k.cost).cost
     df = pd.DataFrame(data=workflows)
 
-    message = textwrap.dedent(
-        '''Terra billing alert (max_cost={max_cost}, reported at {utc_time}):```
-        {table}```
-        '''.format(
+    message = (
+        'Terra billing alert (max_cost={max_cost}, reported at {utc_time}):\n'
+        '```{table}```'.format(
             max_cost=max_cost,
             utc_time=datetime.now(timezone.utc),
             table=df.to_csv(sep='\t', index=False),
