@@ -52,7 +52,25 @@ Add the following environment variables (**IMPORTANT**):
 - `SLACK_CHANNEL`: Slack channel to send alert.
 - `SLACK_TOKEN`: Slack App's OAuth token string.
 
-Click on Next to navigate to the code editing section. Choose Pyton 3.9 as the language and copy the contents of the alert script (`terra_billing_alert`) and paste it to `main.py`. Do it similarly for `requirements.txt`. Enter `main` as the entry point and then deploy.
+Click on Next to navigate to the code editing section. Choose Pyton 3.9 as the language and copy the contents of the alert script (`terra_billing_alert`) and paste the following to `main.py`.
+```python
+from terra_billing_alert.cli import main as cli_main
+
+
+def main(event, context):
+    """Triggered from a message on a Cloud Pub/Sub topic.
+    Args:
+         event (dict): Event payload.
+         context (google.cloud.functions.Context): Metadata for the event.
+    """
+    cli_main()
+    return 'Success'
+```
+Paste the following to `requirements.txt`.
+```txt
+terra_billing_alert
+```
+Enter `main` as the entry point and then deploy.
 
 Create a cron job to run the alert script. Navigate to [Cloud Scheduler](https://console.cloud.google.com/cloudscheduler) and add a new cron job. Specify a frequency (same format as Linux `crontab`). Make sure that the time interval is much longer than the environment variable defined as `WITHIN_HOUR` in the previous step.
 
