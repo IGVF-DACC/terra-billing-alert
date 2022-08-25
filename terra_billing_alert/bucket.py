@@ -4,11 +4,9 @@ import logging
 from .alert_item import (
     AlertItem,
     AlertItems,
-    AlertItemTypeError,
 )
 from .datetime_util import (
     get_past_hours_from_now,
-    get_utc_datetime_from_dict,
     get_utc_now,
 )
 from .terra_util import (
@@ -32,7 +30,7 @@ class Bucket(AlertItem):
         self,
         namespace,
         workspace,
-        size_tb,        
+        size_tb,
         alert_time,
     ):
         super().__init__()
@@ -44,10 +42,10 @@ class Bucket(AlertItem):
     @classmethod
     def from_dict(cls, d):
         return cls(
-            namespace = d['namespace'],
-            workspace = d['workspace'],
-            size_tb = d['size_tb'],
-            alert_time = d['alert_time']
+            namespace=d['namespace'],
+            workspace=d['workspace'],
+            size_tb=d['size_tb'],
+            alert_time=d['alert_time']
         )
 
     def need_to_alert(self, within_hours):
@@ -61,7 +59,7 @@ class Bucket(AlertItem):
 
     def is_duplicate(self, item):
         same_namespace = self['namespace'] == item['namespace']
-        same_workspace = self['workspace'] == item['workspace']            
+        same_workspace = self['workspace'] == item['workspace']
         smaller_size_tb = self['size_tb'] <= item['size_tb']
 
         return same_namespace and same_workspace and smaller_size_tb
@@ -101,7 +99,7 @@ class Buckets(AlertItems):
 
     def send_alert(self, alert_sender, sep=',', quote_table='', dry_run=False):
         if not self.items:
-            logger.info(f'send_alert: no buckets found to send alert.')
+            logger.info('send_alert: no buckets found to send alert.')
             return
 
         title = 'Terra billing alert ({type})'.format(

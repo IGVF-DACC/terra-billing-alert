@@ -49,7 +49,7 @@ class AlertItems(ABC):
         '''Args:
             items: A list of AlertItem.
         '''
-        self.items=[]
+        self.items = []
         for item in items:
             if isinstance(item, self.__class__.get_alert_item_type()):
                 # not a deep copy

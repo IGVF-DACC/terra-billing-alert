@@ -4,7 +4,6 @@ import logging
 from .alert_item import (
     AlertItem,
     AlertItems,
-    AlertItemTypeError,
 )
 from .datetime_util import (
     get_past_hours_from_now,
@@ -46,7 +45,7 @@ class Instance(AlertItem):
         self['workspace'] = workspace
         self['gcp_machine_type'] = gcp_machine_type
         self['cpu'] = cpu
-        self['memory_gb'] = memory_gb 
+        self['memory_gb'] = memory_gb
         self['last_access_time'] = last_access_time
         self['status'] = status
         self['alert_time'] = alert_time
@@ -54,14 +53,14 @@ class Instance(AlertItem):
     @classmethod
     def from_dict(cls, d):
         return cls(
-            namespace = d['namespace'],
-            workspace = d['workspace'],
-            gcp_machine_type = d['gcp_machine_type'],
-            cpu = d['cpu'],
-            memory_gb = d['memory_gb'],
-            last_access_time = d['last_access_time'],
-            status = d['status'],
-            alert_time = d['alert_time']
+            namespace=d['namespace'],
+            workspace=d['workspace'],
+            gcp_machine_type=d['gcp_machine_type'],
+            cpu=d['cpu'],
+            memory_gb=d['memory_gb'],
+            last_access_time=d['last_access_time'],
+            status=d['status'],
+            alert_time=d['alert_time']
         )
 
     def need_to_alert(self, within_hours):
@@ -84,7 +83,7 @@ class Instance(AlertItem):
         same_status = self['status'] == item['status']
 
         return same_namespace and same_workspace and same_cpu and \
-               same_memory and same_status
+            same_memory and same_status
 
 
 class Instances(AlertItems):
@@ -137,7 +136,7 @@ class Instances(AlertItems):
 
     def send_alert(self, alert_sender, sep=',', quote_table='', dry_run=False):
         if not self.items:
-            logger.info(f'send_alert: no instances found to send alert.')
+            logger.info('send_alert: no instances found to send alert.')
             return
 
         title = 'Terra billing alert ({type})'.format(

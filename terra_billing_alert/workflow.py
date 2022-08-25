@@ -4,7 +4,6 @@ import logging
 from .alert_item import (
     AlertItem,
     AlertItems,
-    AlertItemTypeError,
 )
 from .datetime_util import (
     get_past_hours_from_now,
@@ -62,18 +61,18 @@ class Workflow(AlertItem):
     @classmethod
     def from_dict(cls, d):
         return cls(
-            namespace = d['namespace'],
-            workspace = d['workspace'],
-            submission_id = d['submission_id'],
-            workflow_id = d['workflow_id'],
-            submission_name = d['submission_name'],
-            submitter = d['submitter'],
-            cost = d['cost'],
-            submit_time = d['submit_time'],
-            start_time = d['start_time'],
-            end_time = d['end_time'],
-            status = d['status'],
-            alert_time = d['alert_time']
+            namespace=d['namespace'],
+            workspace=d['workspace'],
+            submission_id=d['submission_id'],
+            workflow_id=d['workflow_id'],
+            submission_name=d['submission_name'],
+            submitter=d['submitter'],
+            cost=d['cost'],
+            submit_time=d['submit_time'],
+            start_time=d['start_time'],
+            end_time=d['end_time'],
+            status=d['status'],
+            alert_time=d['alert_time']
         )
 
     def need_to_alert(self, within_hours):
@@ -93,7 +92,7 @@ class Workflow(AlertItem):
         same_status = self['status'] == item['status']
 
         return same_namespace and same_workspace and \
-               same_workflow_id and same_cost and same_status
+            same_workflow_id and same_cost and same_status
 
 
 class Workflows(AlertItems):
@@ -156,7 +155,7 @@ class Workflows(AlertItems):
 
     def send_alert(self, alert_sender, sep=',', quote_table='', dry_run=False):
         if not self.items:
-            logger.info(f'send_alert: no workflows found to send alert.')
+            logger.info('send_alert: no workflows found to send alert.')
             return
 
         title = 'Terra billing alert ({type})'.format(

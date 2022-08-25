@@ -34,6 +34,7 @@ def get_all_submissions(namespace, workspace):
     else:
         logger.error(f'Error retrieving submission from namespace {namespace} with error {r.text}')
 
+
 def get_all_workflows(namespace, workspace, submission_id):
     '''Retuns a list of workflow objects with matching submission_id.
     '''
