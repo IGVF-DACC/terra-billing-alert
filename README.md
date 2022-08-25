@@ -56,7 +56,7 @@ Add the following environment variables (**IMPORTANT**):
 - `SLACK_CHANNEL`: Slack channel to send alert.
 - `SLACK_TOKEN`: Slack App's OAuth token string.
 
-Click on Next to navigate to the code editing section. Choose Pyton 3.9 as the language and copy the contents of [`main.py`](./main.py) and ['requirements.txt'](./requirements.txt) to Cloud Function code area, respectively. Enter `main` as the entry point and then deploy.
+Click on Next to navigate to the code editing section. Choose Python 3.9 as the language and copy the contents of [`main.py`](./main.py) and [`requirements.txt`](./requirements.txt) to Cloud Function code area, respectively. Enter `main` as the entry point and then deploy.
 
 Create a cron job to run the new Cloud Function. Navigate to [Cloud Scheduler](https://console.cloud.google.com/cloudscheduler) and add a new cron job. Specify a frequency (same format as Linux `crontab`). Make sure that the time interval is much longer than the environment variable defined as `WITHIN_HOUR` in the previous step.
 
