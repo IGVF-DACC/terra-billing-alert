@@ -151,5 +151,5 @@ class AlertItems(ABC):
         return df.to_csv(sep=sep, index=False)
 
     @abstractmethod
-    def send_alert(self, alert_sender, sep=',', dry_run=False):
+    def send_alert(self, alert_sender, sep=',', quote_table='', dry_run=False):
         raise NotImplementedError

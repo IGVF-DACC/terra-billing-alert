@@ -7,16 +7,16 @@ and sends alerts:
 '''
 import os
 import logging
-from alert_sender import SlackSender
-from workflow import (
+from .alert_sender import SlackSender
+from .workflow import (
     Workflow,
     Workflows,
 )
-from instance import (
+from .instance import (
     Instance,
     Instances,
 )
-from bucket import (
+from .bucket import (
     Bucket,
     Buckets,
 )
@@ -28,10 +28,11 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 
+def str2bool(v):
+    return v.lower() in ("true", "t", "1", "yes", "ok")
+
+
 def main():
-    '''Reads all configuration from environment variables.
-    See README.md for details.
-    '''
     # Set namespace (billing account on Terra) and workspace (optional)
     namespace = os.environ['WORKSPACE_NAMESPACE']
     workspace = os.environ.get('WORKSPACE')
@@ -54,6 +55,8 @@ def main():
     slack_channel = os.environ['SLACK_CHANNEL']
     slack_token = os.environ['SLACK_TOKEN']
     slack_dry_run = os.environ.get('SLACK_DRY_RUN')
+    if slack_dry_run:
+        slack_dry_run = str2bool(slack_dry_run)
     alert_sender = SlackSender(slack_channel, slack_token)
 
     # check workflows

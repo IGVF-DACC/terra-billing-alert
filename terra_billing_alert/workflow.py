@@ -1,17 +1,17 @@
 '''Change Workflow.LIMIT_COST if you don't like the default value (200.0).
 '''
 import logging
-from alert_item import (
+from .alert_item import (
     AlertItem,
     AlertItems,
     AlertItemTypeError,
 )
-from datetime_util import (
+from .datetime_util import (
     get_past_hours_from_now,
     get_utc_datetime_from_dict,
     get_utc_now,
 )
-from terra_util import (
+from .terra_util import (
     get_all_workspaces,
     get_all_submissions,
     get_all_workflows,
@@ -154,7 +154,7 @@ class Workflows(AlertItems):
 
         return cls(items=items)
 
-    def send_alert(self, alert_sender, sep=',', dry_run=False):
+    def send_alert(self, alert_sender, sep=',', quote_table='', dry_run=False):
         if not self.items:
             logger.info(f'send_alert: no workflows found to send alert.')
             return
@@ -167,8 +167,10 @@ class Workflows(AlertItems):
             utc_time=get_utc_now(),
         )
         table = self.to_csv(sep=sep)
+        if quote_table:
+            table = quote_table + table + quote_table
         message = '\n'.join([contents, table])
 
         logger.info(f'send_alert: {title}, {message}')
         if not dry_run:
-            alert_sender(title, message)
+            alert_sender.send_message(title, message)

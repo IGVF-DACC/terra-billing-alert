@@ -7,5 +7,7 @@ def main(event, context):
          event (dict): Event payload.
          context (google.cloud.functions.Context): Metadata for the event.
     """
+    # Reads all configuration from environment variables
+    # See https://github.com/IGVF-DACC/terra-billing-alert for details
     cli_main()
     return 'Success'

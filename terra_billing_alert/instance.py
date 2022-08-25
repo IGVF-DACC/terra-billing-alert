@@ -1,18 +1,18 @@
 '''Change Instance.LIMIT_SIZE_TB if you don't like the default value (10.0).
 '''
 import logging
-from alert_item import (
+from .alert_item import (
     AlertItem,
     AlertItems,
     AlertItemTypeError,
 )
-from datetime_util import (
+from .datetime_util import (
     get_past_hours_from_now,
     get_utc_datetime_from_dict,
     get_utc_now,
 )
-from gcp_machine_type import parse_gcp_machine_type
-from terra_util import (
+from .gcp_machine_type import parse_gcp_machine_type
+from .terra_util import (
     get_all_workspaces,
     get_all_instances,
 )
@@ -135,7 +135,7 @@ class Instances(AlertItems):
 
         return cls(items=items)
 
-    def send_alert(self, alert_sender, sep=',', dry_run=False):
+    def send_alert(self, alert_sender, sep=',', quote_table='', dry_run=False):
         if not self.items:
             logger.info(f'send_alert: no instances found to send alert.')
             return
@@ -152,8 +152,10 @@ class Instances(AlertItems):
             utc_time=get_utc_now(),
         )
         table = self.to_csv(sep=sep)
+        if quote_table:
+            table = quote_table + table + quote_table
         message = '\n'.join([contents, table])
 
         logger.info(f'send_alert: {title}, {message}')
         if not dry_run:
-            alert_sender(title, message)
+            alert_sender.send_message(title, message)
