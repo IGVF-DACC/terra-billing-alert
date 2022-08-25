@@ -107,11 +107,13 @@ class AlertItems(ABC):
 
         except pandas_gbq.exceptions.GenericGBQException as err:
             if 'Reason: 404' in str(err):
-                # table does not exist
+                logger.info('Ignoring error 404 (table does not exist) from BigQuery.')
                 pass
+
             elif 'Reason: 400' in str(err):
-                # table is empty (invalid schema)
-                pass
+                logger.error('Error 400 (invalid schema) from BigQuery. It may reached hourly limit/quota for queries.')
+                raise
+
             else:
                 raise
 

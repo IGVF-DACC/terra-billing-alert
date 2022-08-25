@@ -57,6 +57,7 @@ def main():
     slack_dry_run = os.environ.get('SLACK_DRY_RUN')
     if slack_dry_run is not None:
         slack_dry_run = str2bool(slack_dry_run)
+
     alert_sender = SlackSender(slack_channel, slack_token)
 
     # check workflows

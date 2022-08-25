@@ -60,9 +60,9 @@ class Bucket(AlertItem):
     def is_duplicate(self, item):
         same_namespace = self['namespace'] == item['namespace']
         same_workspace = self['workspace'] == item['workspace']
-        smaller_size_tb = self['size_tb'] <= item['size_tb']
+        same_or_smaller_size_tb = self['size_tb'] <= item['size_tb']
 
-        return same_namespace and same_workspace and smaller_size_tb
+        return same_namespace and same_workspace and same_or_smaller_size_tb
 
 
 class Buckets(AlertItems):

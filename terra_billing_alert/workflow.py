@@ -88,11 +88,11 @@ class Workflow(AlertItem):
         same_namespace = self['namespace'] == item['namespace']
         same_workspace = self['workspace'] == item['workspace']
         same_workflow_id = self['workflow_id'] == item['workflow_id']
-        same_cost = self['cost'] == item['cost']
+        same_or_smaller_cost = self['cost'] <= item['cost']
         same_status = self['status'] == item['status']
 
         return same_namespace and same_workspace and \
-            same_workflow_id and same_cost and same_status
+            same_workflow_id and same_or_smaller_cost and same_status
 
 
 class Workflows(AlertItems):
