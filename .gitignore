@@ -130,4 +130,4 @@ dmypy.json
 
 # test scripts
 test_*.py
-
+debug/
