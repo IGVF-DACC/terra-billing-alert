@@ -1,19 +1,23 @@
 # Introduction
 
-Use this python script in Google Cloud Function to monitor Terra/Anvil WDL workflow's running cost and send billing alerts (Slack message).
+Use this python script on Google Cloud Function to monitor Terra/Anvil billing charges (cost of WDL workflows, size of bucket storage, size of Cloud Environment instances).
 
-# Enable Google APIs
+# Installation
+
+Follow these steps to install the script.
+
+## Enable Google APIs
 
 Enable the following APIs:
 - Cloud Functions API
 - App Engine API
 - Compute Engine API
 
-# Create a new service account on Google
+## Create a new service account on Google
 
 Create a new Google project (this is not Terra's auto-generated project). Use the same billing account on the new Google project. Go to [Service accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) and create a new service account and grant it an owner level permission on the project. Make a new key JSON and store it securely on your computer.
 
-# Install FireCloud
+## Install FireCloud
 
 Install Terra's FireCloud tools. 
 ```bash
@@ -26,12 +30,12 @@ Register your service account to Terra. You may use the key file created in the 
 $ ./run.sh scripts/register_service_account/register_service_account.py -j JSON_KEY_FILE -e "YOUR_SERVICE_ACCOUNT_EMAIL"
 ```
 
-# Create a Slack app
+## Create a Slack app
 
 [Create a new Slack app](https://api.slack.com/authentication/basics) and add `chat:write` permission to both OAuth Scopes. Install the app to your Slack Workspace.
 
 
-# Add the alert script to Cloud Function
+## Add the alert script to Cloud Function
 
 Navigate to Google [Cloud Function](https://console.cloud.google.com/functions/add) and create a new function with `1st gen` environment and trigger type `Cloud Pub/Sub`. Create a new `Pub/Sub topic`. Define the following environment variables:
 
