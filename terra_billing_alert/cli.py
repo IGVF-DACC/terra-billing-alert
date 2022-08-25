@@ -55,7 +55,7 @@ def main():
     slack_channel = os.environ['SLACK_CHANNEL']
     slack_token = os.environ['SLACK_TOKEN']
     slack_dry_run = os.environ.get('SLACK_DRY_RUN')
-    if slack_dry_run:
+    if slack_dry_run is not None:
         slack_dry_run = str2bool(slack_dry_run)
     alert_sender = SlackSender(slack_channel, slack_token)
 
@@ -64,7 +64,7 @@ def main():
     workflows_from_bigquery = Workflows.from_bigquery(workflow_bigquery_table_id, within_hours)
     workflows = workflows_from_terra.filter_out_duplicates(workflows_from_bigquery)
     workflows = workflows.get_items_to_alert(within_hours)
-    workflows.send_alert(alert_sender, sep='\t', dry_run=slack_dry_run)
+    workflows.send_alert(alert_sender, sep='\t', quote_table='```', dry_run=slack_dry_run)
     workflows.update_bigquery(workflow_bigquery_table_id)
 
     # check instances
@@ -72,7 +72,7 @@ def main():
     instances_from_bigquery = Instances.from_bigquery(instance_bigquery_table_id, within_hours)
     instances = instances_from_terra.filter_out_duplicates(instances_from_bigquery)
     instances = instances.get_items_to_alert(within_hours)
-    instances.send_alert(alert_sender, sep='\t', dry_run=slack_dry_run)
+    instances.send_alert(alert_sender, sep='\t', quote_table='```', dry_run=slack_dry_run)
     instances.update_bigquery(instance_bigquery_table_id)
 
     # check buckets
@@ -80,7 +80,7 @@ def main():
     buckets_from_bigquery = Buckets.from_bigquery(bucket_bigquery_table_id, within_hours)
     buckets = buckets_from_terra.filter_out_duplicates(buckets_from_bigquery)
     buckets = buckets.get_items_to_alert(within_hours)
-    buckets.send_alert(alert_sender, sep='\t', dry_run=slack_dry_run)
+    buckets.send_alert(alert_sender, sep='\t', quote_table='```', dry_run=slack_dry_run)
     buckets.update_bigquery(bucket_bigquery_table_id)
 
 
