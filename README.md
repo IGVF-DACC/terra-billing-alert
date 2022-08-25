@@ -13,7 +13,7 @@ Enable the following APIs:
 
 Create a new Google project (this is not Terra's auto-generated project). Use the same billing account on the new Google project. Go to [Service accounts](https://console.cloud.google.com/iam-admin/serviceaccounts) and create a new service account and grant it an owner level permission on the project. Make a new key JSON and store it securely on your computer.
 
-# Instal FireCloud
+# Install FireCloud
 
 Install Terra's FireCloud tools. 
 ```bash
@@ -52,38 +52,20 @@ Add the following environment variables (**IMPORTANT**):
 - `SLACK_CHANNEL`: Slack channel to send alert.
 - `SLACK_TOKEN`: Slack App's OAuth token string.
 
-Click on Next to navigate to the code editing section. Choose Pyton 3.9 as the language and copy the contents of the alert script (`terra_billing_alert`) and paste the following to `main.py`.
-```python
-from terra_billing_alert.cli import main as cli_main
+Click on Next to navigate to the code editing section. Choose Pyton 3.9 as the language and copy the contents of [`main.py`](./main.py) and ['requirements.txt'](./requirements.txt) to Cloud Function code area, respectively. Enter `main` as the entry point and then deploy.
 
-
-def main(event, context):
-    """Triggered from a message on a Cloud Pub/Sub topic.
-    Args:
-         event (dict): Event payload.
-         context (google.cloud.functions.Context): Metadata for the event.
-    """
-    cli_main()
-    return 'Success'
-```
-Paste the following to `requirements.txt`.
-```txt
-terra_billing_alert
-```
-Enter `main` as the entry point and then deploy.
-
-Create a cron job to run the alert script. Navigate to [Cloud Scheduler](https://console.cloud.google.com/cloudscheduler) and add a new cron job. Specify a frequency (same format as Linux `crontab`). Make sure that the time interval is much longer than the environment variable defined as `WITHIN_HOUR` in the previous step.
+Create a cron job to run the new Cloud Function. Navigate to [Cloud Scheduler](https://console.cloud.google.com/cloudscheduler) and add a new cron job. Specify a frequency (same format as Linux `crontab`). Make sure that the time interval is much longer than the environment variable defined as `WITHIN_HOUR` in the previous step.
 
 Set retry as 1 and test the cron job.
 
-# How to test/debug
+# How to test and debug locally
 
-Define the above environment variables (e.g. `export WORKSPACE_NAMESPACE="IGVF-DACC"`). Make a copy of your service account's key JSON file on your home on Cloud Shell and define it as `GOOGLE_APPLICATION_CREDENTIALS`.
+Define the above environment variables (e.g. `export WORKSPACE_NAMESPACE="YOUR_TERRA_BILLING_ACCOUNT_NAME"`). Define `GOOGLE_APPLICATION_CREDENTIALS` as your service account's key JSON file.
 ```bash
 $ export GOOGLE_APPLICATION_CREDENTIALS="PATH_FOR_KEY_JSON"
 ````
 
-Make sure that you've already registered your service account to FireCloud. Run it.
+Make sure that you've already installed FireCloud tools and registered your service account to FireCloud. Run it.
 ```bash
-$ python3 terra_billing_alert/main.py
+$ bin/terra_billing_alert
 ````
