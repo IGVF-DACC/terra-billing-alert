@@ -60,5 +60,6 @@ setuptools.setup(
         'pandas-gbq==0.17.5',
         'common==0.1.2',
         'slackclient==2.9.4',
+        'google-cloud-bigquery',
     ],
 )
