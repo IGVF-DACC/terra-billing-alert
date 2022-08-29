@@ -69,7 +69,7 @@ class Instance(AlertItem):
         is_running = self['status'] == 'Running'
         time_is_within_hours = get_past_hours_from_now(self['alert_time']) < within_hours
 
-        if too_many_cpu and too_much_memory and is_running and \
+        if (too_many_cpu or too_much_memory) and is_running and \
            time_is_within_hours:
             return True
 

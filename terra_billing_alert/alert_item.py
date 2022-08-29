@@ -125,9 +125,9 @@ class AlertItems(ABC):
     def update_bigquery(self, bigquery_table_id, dry_run=False):
         project_id, dataset_id, table_id = bigquery_table_id.split('.')
 
-        if not dry_run:
+        if not dry_run and self.items:
             return self.to_dataframe().to_gbq(
-                f'{dataset_id}.{table_id}', project_id=project_id, if_exists='replace'
+                f'{dataset_id}.{table_id}', project_id=project_id, if_exists='append'
             )
 
     def get_items_to_alert(self, within_hours):
