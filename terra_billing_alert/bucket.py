@@ -23,8 +23,10 @@ class Bucket(AlertItem):
 
     Class variables:
         LIMIT_SIZE_TB: Limit for size of a bucket in TB
+        LIMIT_SIZE_PERCENT_IGNORE_CHANGE
     '''
     LIMIT_SIZE_TB = 10.0
+    LIMIT_SIZE_PERCENT_IGNORE_CHANGE = 2.0
 
     def __init__(
         self,
@@ -60,7 +62,7 @@ class Bucket(AlertItem):
     def is_duplicate(self, item):
         same_namespace = self['namespace'] == item['namespace']
         same_workspace = self['workspace'] == item['workspace']
-        same_or_smaller_size_tb = self['size_tb'] <= item['size_tb']
+        same_or_smaller_size_tb = self['size_tb'] <= item['size_tb']*(1.0 + Bucket.LIMIT_SIZE_PERCENT_IGNORE_CHANGE/100.0)
 
         return same_namespace and same_workspace and same_or_smaller_size_tb
 

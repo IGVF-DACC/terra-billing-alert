@@ -28,6 +28,7 @@ class Workflow(AlertItem):
         LIMIT_COST: Limit for cost of a workflow
     '''
     LIMIT_COST = 200.0
+    LIMIT_COST_PERCENT_IGNORE_CHANGE = 2.0
 
     def __init__(
         self,
@@ -88,7 +89,7 @@ class Workflow(AlertItem):
         same_namespace = self['namespace'] == item['namespace']
         same_workspace = self['workspace'] == item['workspace']
         same_workflow_id = self['workflow_id'] == item['workflow_id']
-        same_or_smaller_cost = self['cost'] <= item['cost']
+        same_or_smaller_cost = self['cost'] <= item['cost']*(1.0 + Workflow.LIMIT_COST_PERCENT_IGNORE_CHANGE/100.0)
         same_status = self['status'] == item['status']
 
         return same_namespace and same_workspace and \
