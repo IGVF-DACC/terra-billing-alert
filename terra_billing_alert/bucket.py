@@ -90,6 +90,9 @@ class Buckets(AlertItems):
         for workspace in workspaces:
             bucket_obj = get_bucket_usage(namespace, workspace)
 
+            if not bucket_obj or 'usageInBytes' not in bucket_obj:
+                continue
+
             items.append(Bucket(
                 namespace=namespace,
                 workspace=workspace,
