@@ -1,5 +1,3 @@
-'''Change Instance.LIMIT_SIZE_TB if you don't like the default value (10.0).
-'''
 import logging
 from .alert_item import (
     AlertItem,
@@ -24,7 +22,7 @@ class Instance(AlertItem):
     '''Instance alert item definition:
 
     Class variables:
-        LIMIT_SIZE_TB: Limit for size of a instance in TB
+        LIMIT_MEMORY_GB: Limit for memory of an instance in GB
     '''
     LIMIT_CPU = 8
     LIMIT_MEMORY_GB = 48.0
@@ -115,7 +113,10 @@ class Instances(AlertItems):
 
                 if namespace_matched and workspace_matched:
                     runtime_config = instance['runtimeConfig']
-                    gcp_machine_type = runtime_config['machineType']
+                    gcp_machine_type = runtime_config.get('machineType')
+                    if not gcp_machine_type:
+                        logger.error(f'Could not get gcp_machine_type of an instance on {workspace}')
+                        continue
                     cpu, memory_gb = parse_gcp_machine_type(gcp_machine_type)
                     last_access_time = get_utc_datetime_from_dict(
                         instance['auditInfo'], 'dateAccessed'
