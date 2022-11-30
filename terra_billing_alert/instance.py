@@ -24,7 +24,7 @@ class Instance(AlertItem):
     Class variables:
         LIMIT_MEMORY_GB: Limit for memory of an instance in GB
     '''
-    LIMIT_CPU = 8
+    LIMIT_CPU = 8.0
     LIMIT_MEMORY_GB = 48.0
 
     def __init__(
@@ -88,6 +88,19 @@ class Instances(AlertItems):
     @classmethod
     def get_alert_item_type(cls):
         return Instance
+
+    @classmethod
+    def get_alert_item_table_schema(cls):
+        return {
+            'name': 'namespace', 'type': 'STRING',
+            'name': 'workspace', 'type': 'STRING',
+            'name': 'gcp_machine_type', 'type': 'STRING',
+            'name': 'cpu', 'type': 'FLOAT',
+            'name': 'memory_gb', 'type': 'FLOAT',
+            'name': 'last_access_time', 'type': 'TIMESTAMP', 'mode': 'NULLABLE',
+            'name': 'status', 'type': 'FLOAT',
+            'name': 'alert_time', 'type': 'TIMESTAMP', 'mode': 'NULLABLE',
+        }
 
     @classmethod
     def from_terra(cls, namespace, workspace=None):
