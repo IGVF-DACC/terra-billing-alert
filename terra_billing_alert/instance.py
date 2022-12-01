@@ -91,16 +91,16 @@ class Instances(AlertItems):
 
     @classmethod
     def get_alert_item_table_schema(cls):
-        return {
-            'name': 'namespace', 'type': 'STRING',
-            'name': 'workspace', 'type': 'STRING',
-            'name': 'gcp_machine_type', 'type': 'STRING',
-            'name': 'cpu', 'type': 'FLOAT',
-            'name': 'memory_gb', 'type': 'FLOAT',
-            'name': 'last_access_time', 'type': 'TIMESTAMP', 'mode': 'NULLABLE',
-            'name': 'status', 'type': 'FLOAT',
-            'name': 'alert_time', 'type': 'TIMESTAMP', 'mode': 'NULLABLE',
-        }
+        return [
+            { 'name': 'namespace', 'type': 'STRING' },
+            { 'name': 'workspace', 'type': 'STRING' },
+            { 'name': 'gcp_machine_type', 'type': 'STRING' },
+            { 'name': 'cpu', 'type': 'FLOAT' },
+            { 'name': 'memory_gb', 'type': 'FLOAT' },
+            { 'name': 'last_access_time', 'type': 'TIMESTAMP' },
+            { 'name': 'status', 'type': 'STRING' },
+            { 'name': 'alert_time', 'type': 'TIMESTAMP' }
+        ]
 
     @classmethod
     def from_terra(cls, namespace, workspace=None):
