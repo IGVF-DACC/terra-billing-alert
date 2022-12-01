@@ -61,5 +61,6 @@ setuptools.setup(
         'common==0.1.2',
         'slackclient==2.9.4',
         'google-cloud-bigquery',
+        'ndg-httpsclient',
     ],
 )
