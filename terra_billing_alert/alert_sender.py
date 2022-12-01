@@ -1,5 +1,9 @@
+import logging
 from slack import WebClient
 from slack.errors import SlackApiError
+
+
+logger = logging.getLogger(__name__)
 
 
 class AlertSender:
@@ -21,4 +25,4 @@ class SlackSender(AlertSender):
                 text='\n'.join([title, message])
             )
         except SlackApiError as e:
-            print(f'Failed to send slack message due to error {e.response["error"]}')
+            logger.error(f'Failed to send slack message due to error {e.response["error"]}')

@@ -67,6 +67,11 @@ class AlertItems(ABC):
 
     @classmethod
     @abstractmethod
+    def get_alert_item_table_schema(cls):
+        raise NotImplementedError
+
+    @classmethod
+    @abstractmethod
     def from_terra(cls, namespace, workspace=None):
         raise NotImplementedError
 
@@ -127,7 +132,10 @@ class AlertItems(ABC):
 
         if not dry_run and self.items:
             return self.to_dataframe().to_gbq(
-                f'{dataset_id}.{table_id}', project_id=project_id, if_exists='append'
+                f'{dataset_id}.{table_id}',
+                project_id=project_id,
+                if_exists='append',
+                table_schema=self.__class__.get_alert_item_table_schema(),
             )
 
     def get_items_to_alert(self, within_hours):

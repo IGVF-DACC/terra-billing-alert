@@ -34,6 +34,8 @@ def get_all_submissions(namespace, workspace):
     else:
         logger.error(f'Error retrieving submission from namespace {namespace} with error {r.text}')
 
+    return {}
+
 
 def get_all_workflows(namespace, workspace, submission_id):
     '''Retuns a list of workflow objects with matching submission_id.
@@ -59,6 +61,8 @@ def get_workflow_metadata(namespace, workspace, submission_id, workflow_id):
     else:
         logger.error(f'Error retrieving workflow id {workflow_id} with error {r.text}')
 
+    return {}
+
 
 def get_bucket_usage(namespace, workspace):
     r = fapi.get_bucket_usage(namespace, workspace)
@@ -67,6 +71,8 @@ def get_bucket_usage(namespace, workspace):
         return r.json()
     else:
         logger.error(f'Error retrieving bucket usage of {workspace} with error {r.text}')
+
+    return {}
 
 
 def get_all_instances(namespace, workspace):
@@ -81,3 +87,5 @@ def get_all_instances(namespace, workspace):
         return r.json()
     else:
         logger.error(f'Error retrieving bucket usage of {workspace} with error {r.text}')
+
+    return {}

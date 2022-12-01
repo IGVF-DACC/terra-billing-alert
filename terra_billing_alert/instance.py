@@ -1,5 +1,3 @@
-'''Change Instance.LIMIT_SIZE_TB if you don't like the default value (10.0).
-'''
 import logging
 from .alert_item import (
     AlertItem,
@@ -24,9 +22,9 @@ class Instance(AlertItem):
     '''Instance alert item definition:
 
     Class variables:
-        LIMIT_SIZE_TB: Limit for size of a instance in TB
+        LIMIT_MEMORY_GB: Limit for memory of an instance in GB
     '''
-    LIMIT_CPU = 8
+    LIMIT_CPU = 8.0
     LIMIT_MEMORY_GB = 48.0
 
     def __init__(
@@ -92,6 +90,19 @@ class Instances(AlertItems):
         return Instance
 
     @classmethod
+    def get_alert_item_table_schema(cls):
+        return [
+            { 'name': 'namespace', 'type': 'STRING' },
+            { 'name': 'workspace', 'type': 'STRING' },
+            { 'name': 'gcp_machine_type', 'type': 'STRING' },
+            { 'name': 'cpu', 'type': 'FLOAT' },
+            { 'name': 'memory_gb', 'type': 'FLOAT' },
+            { 'name': 'last_access_time', 'type': 'TIMESTAMP' },
+            { 'name': 'status', 'type': 'STRING' },
+            { 'name': 'alert_time', 'type': 'TIMESTAMP' }
+        ]
+
+    @classmethod
     def from_terra(cls, namespace, workspace=None):
         '''Get all instances from Terra using FireCloud Workbench Notebook API.
         Args:
@@ -115,8 +126,14 @@ class Instances(AlertItems):
 
                 if namespace_matched and workspace_matched:
                     runtime_config = instance['runtimeConfig']
-                    gcp_machine_type = runtime_config['machineType']
-                    cpu, memory_gb = parse_gcp_machine_type(gcp_machine_type)
+                    master_machine_type = runtime_config.get('masterMachineType')
+                    machine_type = runtime_config.get('machineType')
+                    machine_type = machine_type if master_machine_type is None else master_machine_type
+
+                    if not machine_type:
+                        logger.error(f'Could not get machine_type or master_machine_type of an instance on {workspace}')
+                        continue
+                    cpu, memory_gb = parse_gcp_machine_type(machine_type)
                     last_access_time = get_utc_datetime_from_dict(
                         instance['auditInfo'], 'dateAccessed'
                     )
@@ -124,7 +141,7 @@ class Instances(AlertItems):
                     items.append(Instance(
                         namespace=namespace,
                         workspace=workspace,
-                        gcp_machine_type=gcp_machine_type,
+                        gcp_machine_type=machine_type,
                         cpu=cpu,
                         memory_gb=memory_gb,
                         last_access_time=last_access_time,

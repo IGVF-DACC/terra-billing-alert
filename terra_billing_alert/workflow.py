@@ -28,6 +28,7 @@ class Workflow(AlertItem):
         LIMIT_COST: Limit for cost of a workflow
     '''
     LIMIT_COST = 200.0
+    LIMIT_COST_PERCENT_IGNORE_CHANGE = 2.0
 
     def __init__(
         self,
@@ -88,7 +89,7 @@ class Workflow(AlertItem):
         same_namespace = self['namespace'] == item['namespace']
         same_workspace = self['workspace'] == item['workspace']
         same_workflow_id = self['workflow_id'] == item['workflow_id']
-        same_or_smaller_cost = self['cost'] <= item['cost']
+        same_or_smaller_cost = self['cost'] <= item['cost']*(1.0 + Workflow.LIMIT_COST_PERCENT_IGNORE_CHANGE/100.0)
         same_status = self['status'] == item['status']
 
         return same_namespace and same_workspace and \
@@ -99,6 +100,23 @@ class Workflows(AlertItems):
     @classmethod
     def get_alert_item_type(cls):
         return Workflow
+
+    @classmethod
+    def get_alert_item_table_schema(cls):
+        return [
+            { 'name': 'namespace', 'type': 'STRING' },
+            { 'name': 'workspace', 'type': 'STRING' },
+            { 'name': 'submission_id', 'type': 'STRING' },
+            { 'name': 'workflow_id', 'type': 'STRING' },
+            { 'name': 'submission_name', 'type': 'STRING' },
+            { 'name': 'submitter', 'type': 'STRING' },
+            { 'name': 'cost', 'type': 'FLOAT' },
+            { 'name': 'submit_time', 'type': 'TIMESTAMP' },
+            { 'name': 'start_time', 'type': 'TIMESTAMP' },
+            { 'name': 'end_time', 'type': 'TIMESTAMP' },
+            { 'name': 'status', 'type': 'STRING' },
+            { 'name': 'alert_time', 'type': 'TIMESTAMP' }
+        ]
 
     @classmethod
     def from_terra(cls, namespace, workspace=None):

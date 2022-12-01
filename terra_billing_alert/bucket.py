@@ -23,8 +23,10 @@ class Bucket(AlertItem):
 
     Class variables:
         LIMIT_SIZE_TB: Limit for size of a bucket in TB
+        LIMIT_SIZE_PERCENT_IGNORE_CHANGE
     '''
     LIMIT_SIZE_TB = 10.0
+    LIMIT_SIZE_PERCENT_IGNORE_CHANGE = 2.0
 
     def __init__(
         self,
@@ -60,7 +62,7 @@ class Bucket(AlertItem):
     def is_duplicate(self, item):
         same_namespace = self['namespace'] == item['namespace']
         same_workspace = self['workspace'] == item['workspace']
-        same_or_smaller_size_tb = self['size_tb'] <= item['size_tb']
+        same_or_smaller_size_tb = self['size_tb'] <= item['size_tb']*(1.0 + Bucket.LIMIT_SIZE_PERCENT_IGNORE_CHANGE/100.0)
 
         return same_namespace and same_workspace and same_or_smaller_size_tb
 
@@ -69,6 +71,15 @@ class Buckets(AlertItems):
     @classmethod
     def get_alert_item_type(cls):
         return Bucket
+
+    @classmethod
+    def get_alert_item_table_schema(cls):
+        return [
+            { 'name': 'namespace', 'type': 'STRING' },
+            { 'name': 'workspace', 'type': 'STRING' },
+            { 'name': 'size_tb', 'type': 'FLOAT' },
+            { 'name': 'alert_time', 'type': 'TIMESTAMP' }
+        ]
 
     @classmethod
     def from_terra(cls, namespace, workspace=None):
@@ -87,6 +98,9 @@ class Buckets(AlertItems):
 
         for workspace in workspaces:
             bucket_obj = get_bucket_usage(namespace, workspace)
+
+            if not bucket_obj or 'usageInBytes' not in bucket_obj:
+                continue
 
             items.append(Bucket(
                 namespace=namespace,
