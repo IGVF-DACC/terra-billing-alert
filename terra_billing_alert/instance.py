@@ -126,11 +126,14 @@ class Instances(AlertItems):
 
                 if namespace_matched and workspace_matched:
                     runtime_config = instance['runtimeConfig']
-                    gcp_machine_type = runtime_config.get('machineType')
-                    if not gcp_machine_type:
-                        logger.error(f'Could not get gcp_machine_type of an instance on {workspace}')
+                    master_machine_type = runtime_config.get('masterMachineType')
+                    machine_type = runtime_config.get('machineType')
+                    machine_type = machine_type if master_machine_type is None else master_machine_type
+
+                    if not machine_type:
+                        logger.error(f'Could not get machine_type or master_machine_type of an instance on {workspace}')
                         continue
-                    cpu, memory_gb = parse_gcp_machine_type(gcp_machine_type)
+                    cpu, memory_gb = parse_gcp_machine_type(machine_type)
                     last_access_time = get_utc_datetime_from_dict(
                         instance['auditInfo'], 'dateAccessed'
                     )
@@ -138,7 +141,7 @@ class Instances(AlertItems):
                     items.append(Instance(
                         namespace=namespace,
                         workspace=workspace,
-                        gcp_machine_type=gcp_machine_type,
+                        gcp_machine_type=machine_type,
                         cpu=cpu,
                         memory_gb=memory_gb,
                         last_access_time=last_access_time,
