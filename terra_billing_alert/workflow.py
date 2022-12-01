@@ -102,6 +102,23 @@ class Workflows(AlertItems):
         return Workflow
 
     @classmethod
+    def get_alert_item_table_schema(cls):
+        return [
+            { 'name': 'namespace', 'type': 'STRING' },
+            { 'name': 'workspace', 'type': 'STRING' },
+            { 'name': 'submission_id', 'type': 'STRING' },
+            { 'name': 'workflow_id', 'type': 'STRING' },
+            { 'name': 'submission_name', 'type': 'STRING' },
+            { 'name': 'submitter', 'type': 'STRING' },
+            { 'name': 'cost', 'type': 'FLOAT' },
+            { 'name': 'submit_time', 'type': 'TIMESTAMP' },
+            { 'name': 'start_time', 'type': 'TIMESTAMP' },
+            { 'name': 'end_time', 'type': 'TIMESTAMP' },
+            { 'name': 'status', 'type': 'STRING' },
+            { 'name': 'alert_time', 'type': 'TIMESTAMP' }
+        ]
+
+    @classmethod
     def from_terra(cls, namespace, workspace=None):
         '''Get all workflows from Terra using FireCloud API.
         Args:
