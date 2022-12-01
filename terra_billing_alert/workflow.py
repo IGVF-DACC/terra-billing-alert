@@ -154,8 +154,6 @@ class Workflows(AlertItems):
                     start_time = get_utc_datetime_from_dict(wf_metadata, 'start')
                     end_time = get_utc_datetime_from_dict(wf_metadata, 'end')
 
-                    print([namespace, workspace, workflow_id, cost, status, start_time])
-
                     items.append(Workflow(
                         namespace=namespace,
                         workspace=workspace,
