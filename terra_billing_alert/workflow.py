@@ -145,6 +145,9 @@ class Workflows(AlertItems):
                 for workflow in get_all_workflows(
                     namespace, workspace, submission_id,
                 ):
+                    if not workflow or 'workflowId' not in workflow:
+                        logger.error(f'Could not get workflow for {submission_id} on {workspace}')
+                        continue
                     cost = workflow.get('cost') or 0.0
                     workflow_id = workflow['workflowId']
                     status = workflow['status']
